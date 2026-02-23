@@ -4,6 +4,7 @@ const getHeaders = () => {
     const token = localStorage.getItem('gc_token');
     return {
         'Content-Type': 'application/json',
+        'bypass-tunnel-reminder': 'true',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 };
@@ -15,7 +16,7 @@ const handleRes = async (res) => {
 };
 
 export const api = {
-    // Auth - OTP based (backend supports send-otp + verify-otp)
+    // Auth - OTP based
     sendOtp: (phone) =>
         fetch(`${API_BASE}/auth/send-otp`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ phone }) }).then(handleRes),
     verifyOtp: (phone, otp, name, address) =>
@@ -23,7 +24,7 @@ export const api = {
 
     // Categories
     getCategories: () =>
-        fetch(`${API_BASE}/categories`).then(handleRes),
+        fetch(`${API_BASE}/categories`, { headers: getHeaders() }).then(handleRes),
 
     // Bookings
     createBooking: (body) =>

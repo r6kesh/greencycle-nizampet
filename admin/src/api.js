@@ -1,9 +1,10 @@
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 const getHeaders = () => {
     const token = localStorage.getItem('gc_admin_token');
     return {
         'Content-Type': 'application/json',
+        'bypass-tunnel-reminder': 'true',
         ...(token && { Authorization: `Bearer ${token}` })
     };
 };
@@ -19,7 +20,7 @@ const api = {
     login: (phone, password) =>
         fetch(`${API_BASE}/auth/admin-login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify({ phone, password })
         }).then(handleResponse),
 
