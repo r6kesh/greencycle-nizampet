@@ -36,14 +36,14 @@ router.post('/send-otp', async (req, res, next) => {
             await user.save();
         }
 
-        // In production, send OTP via SMS service (Twilio, MSG91, etc.)
-        // For development, we return it in response
+        // TODO: Connect SMS service (MSG91/Twilio) to send real SMS
+        // For now, OTP is shown on screen for testing
         console.log(`📱 OTP for ${phone}: ${otp}`);
 
         res.json({
             success: true,
             message: 'OTP sent successfully',
-            ...(process.env.NODE_ENV === 'development' && { otp }) // Only in dev
+            otp // Shown on screen until SMS service is configured
         });
     } catch (error) {
         next(error);
