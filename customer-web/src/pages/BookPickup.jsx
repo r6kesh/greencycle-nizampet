@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
-const TIME_SLOTS = ['8:00 AM - 10:00 AM', '10:00 AM - 12:00 PM', '12:00 PM - 2:00 PM',
-    '2:00 PM - 4:00 PM', '4:00 PM - 6:00 PM', '6:00 PM - 8:00 PM'];
+const TIME_SLOTS = [
+    '8:00 AM - 10:00 AM', '10:00 AM - 12:00 PM', '12:00 PM - 2:00 PM',
+    '2:00 PM - 4:00 PM', '4:00 PM - 6:00 PM', '6:00 PM - 8:00 PM',
+];
 
 const STATIC_CATEGORIES = [
     { _id: '1', name: 'Newspaper', icon: '📰' },
@@ -59,12 +61,12 @@ export default function BookPickup() {
         setLoading(true);
         try {
             await api.createBooking({
-                scheduledDate: form.pickupDate,          // backend expects scheduledDate
+                scheduledDate: form.pickupDate,
                 timeSlot: form.timeSlot,
-                address: form.address,
-                items: form.items.map(id => ({           // backend expects [{category, estimatedWeight}]
+                address: { fullAddress: form.address },  // backend expects {fullAddress: string}
+                items: form.items.map(id => ({
                     category: id,
-                    estimatedWeight: 1                   // default weight, agent will weigh on arrival
+                    estimatedWeight: 1
                 })),
                 notes: form.notes,
                 paymentMethod: 'cash',
@@ -122,7 +124,7 @@ export default function BookPickup() {
                             <div className="form-group">
                                 <label className="form-label">Time Slot</label>
                                 <select className="form-control" value={form.timeSlot} onChange={e => set('timeSlot', e.target.value)}>
-                                    {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+                                    {TIME_SLOTS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                                 </select>
                             </div>
                         </div>

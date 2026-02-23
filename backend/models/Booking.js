@@ -22,11 +22,7 @@ const bookingSchema = new mongoose.Schema({
         longitude: Number
     },
     scheduledDate: { type: Date, required: true },
-    timeSlot: {
-        type: String,
-        required: true,
-        enum: ['8AM-10AM', '10AM-12PM', '12PM-2PM', '2PM-4PM', '4PM-6PM', '6PM-8PM']
-    },
+    timeSlot: { type: String, required: true },
     notes: String,
     status: {
         type: String,
