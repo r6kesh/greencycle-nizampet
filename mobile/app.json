@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "GreenCycle",
+    "slug": "greencycle",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "description": "Sell your scrap at best prices! Book free doorstep scrap collection. Newspaper, iron, copper, plastic and more. Serving Hyderabad.",
+    "splash": {
+      "image": "./assets/splash.png",
+      "backgroundColor": "#0D4B3C",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.greencycle.app",
+      "buildNumber": "1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D4B3C"
+      },
+      "package": "com.greencycle.app",
+      "versionCode": 1,
+      "permissions": [
+        "CALL_PHONE",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "https://greencycle-backend.up.railway.app/api",
+      "eas": {
+        "projectId": "FILL_AFTER_EAS_LOGIN"
+      }
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
