@@ -59,11 +59,15 @@ export default function BookPickup() {
         setLoading(true);
         try {
             await api.createBooking({
-                pickupDate: form.pickupDate,
+                scheduledDate: form.pickupDate,          // backend expects scheduledDate
                 timeSlot: form.timeSlot,
                 address: form.address,
-                categories: form.items,
+                items: form.items.map(id => ({           // backend expects [{category, estimatedWeight}]
+                    category: id,
+                    estimatedWeight: 1                   // default weight, agent will weigh on arrival
+                })),
                 notes: form.notes,
+                paymentMethod: 'cash',
             });
             setSuccess(true);
         } catch (err) {
