@@ -36,6 +36,15 @@ const useAuth = () => {
         setUser(null);
     }, []);
 
+    // Session verification on mount
+    useEffect(() => {
+        if (token) {
+            api.getProfile()
+                .then(res => setUser(res.data))
+                .catch(() => logout());
+        }
+    }, [token, logout]);
+
     return { user, token, login, logout, isAuthenticated: !!token };
 };
 
@@ -333,6 +342,7 @@ const BookingsPage = () => {
                         <tr>
                             <th>Booking ID</th>
                             <th>Customer</th>
+                            <th>Address</th>
                             <th>Items</th>
                             <th>Schedule</th>
                             <th>Status</th>
@@ -351,6 +361,10 @@ const BookingsPage = () => {
                                 <td>
                                     <strong style={{ color: 'var(--text-primary)' }}>{b.user?.name || 'N/A'}</strong>
                                     <br /><span style={{ fontSize: 11 }}>{b.user?.phone}</span>
+                                </td>
+                                <td style={{ maxWidth: 200, fontSize: 13, color: 'var(--text-secondary)' }}>
+                                    <MapPin size={12} style={{ marginRight: 4, display: 'inline' }} />
+                                    {b.address?.fullAddress || 'N/A'}
                                 </td>
                                 <td>
                                     {(b.items || []).map((item, i) => (

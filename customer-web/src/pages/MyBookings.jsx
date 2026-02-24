@@ -69,16 +69,16 @@ export default function MyBookings() {
                                 <div className="booking-card" key={b._id}>
                                     <div className="booking-info">
                                         <h4>
-                                            {b.categories?.map(c => c.name || c).join(', ') || 'Scrap Pickup'}
+                                            {b.items?.map(i => i.categoryName || 'Item').join(', ') || 'Scrap Pickup'}
                                         </h4>
-                                        <p>📅 {fmt(b.pickupDate)} · ⏰ {b.timeSlot || 'TBD'}</p>
-                                        <p style={{ marginTop: '.25rem' }}>📍 {b.address || '—'}</p>
+                                        <p>📅 {fmt(b.scheduledDate)} · ⏰ {b.timeSlot || 'TBD'}</p>
+                                        <p style={{ marginTop: '.25rem' }}>📍 {b.address?.fullAddress || '—'}</p>
                                     </div>
                                     <div className="booking-meta">
                                         <span className={`badge ${statusColor(b.status)}`}>{b.status || 'pending'}</span>
-                                        {b.totalAmount > 0 && (
+                                        {(b.finalAmount || b.estimatedAmount) > 0 && (
                                             <p style={{ color: 'var(--gold)', fontWeight: 700, marginTop: '.5rem', fontSize: '.95rem' }}>
-                                                ₹{b.totalAmount}
+                                                ₹{b.finalAmount || b.estimatedAmount}
                                             </p>
                                         )}
                                     </div>

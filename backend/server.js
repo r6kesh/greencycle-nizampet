@@ -49,9 +49,10 @@ app.get('/', (req, res) => {
     <div style="font-family: sans-serif; text-align: center; padding: 50px; background: #0a1410; color: #10b981; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
       <h1 style="font-size: 3rem; margin-bottom: 10px;">♻️ GreenCycle API</h1>
       <p style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 30px;">The backend is running perfectly!</p>
-      <div style="display: flex; gap: 20px; justify-content: center;">
+      <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
         <a href="https://greencycle-nizampet.web.app" style="background: #10b981; color: #0a1410; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Visit Customer Site</a>
         <a href="https://greencycle-admin-panel.web.app" style="background: #fbbf24; color: #0a1410; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Visit Admin Panel</a>
+        <a href="https://greencycle-agent-panel.web.app" style="background: #a78bfa; color: #0a1410; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Visit Agent Panel</a>
       </div>
       <p style="margin-top: 40px; font-size: 0.9rem; color: #475569;">API Health: <a href="/api/health" style="color: #34d399;">/api/health</a></p>
     </div>

@@ -1,0 +1,167 @@
+:root {
+    --emerald-500: #10b981;
+    --emerald-600: #059669;
+    --emerald-400: #34d399;
+    --bg-dark: #0a1410;
+    --card-dark: #151d19;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --gold: #fbbf24;
+    --danger: #ef4444;
+    --border: #1e3a2f;
+    --radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: 'Poppins', sans-serif;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Auth */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-card {
+    background: var(--card-dark);
+    padding: 2.5rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    width: 100%;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: var(--emerald-500);
+    color: var(--bg-dark);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+    background: var(--emerald-600);
+}
+
+/* Sidebar/Nav dummy for mobile */
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--card-dark);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.task-card {
+    background: var(--card-dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+}
+
+.task-card:active {
+    background: #1a2520;
+}
+
+.badge {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.badge-assigned {
+    background: rgba(167, 139, 250, 0.1);
+    color: #a78bfa;
+}
+
+.badge-out {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.action-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #0f1712;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--emerald-500);
+}
+
+.animate-in {
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -38,8 +38,12 @@ const api = {
         fetch(`${API_BASE}/analytics/export?${new URLSearchParams(params)}`, { headers: getHeaders() }),
 
     // Bookings
-    getBookings: (params = {}) =>
-        fetch(`${API_BASE}/bookings/all?${new URLSearchParams(params)}`, { headers: getHeaders() }).then(handleResponse),
+    getBookings: (params = {}) => {
+        const cleanParams = Object.fromEntries(
+            Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== '' && v !== 'all')
+        );
+        return fetch(`${API_BASE}/bookings/all?${new URLSearchParams(cleanParams)}`, { headers: getHeaders() }).then(handleResponse);
+    },
 
     updateBookingStatus: (id, status) =>
         fetch(`${API_BASE}/bookings/${id}/status`, {

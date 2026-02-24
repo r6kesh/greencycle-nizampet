@@ -124,7 +124,7 @@ export default function BookPickup() {
                             <div className="form-group">
                                 <label className="form-label">Time Slot</label>
                                 <select className="form-control" value={form.timeSlot} onChange={e => set('timeSlot', e.target.value)}>
-                                    {TIME_SLOTS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                    {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
                             </div>
                         </div>

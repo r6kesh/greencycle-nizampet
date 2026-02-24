@@ -29,6 +29,21 @@
                     "destination": "/index.html"
                 }
             ]
+        },
+        {
+            "site": "greencycle-agent-panel",
+            "public": "agent-web/dist",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+            ],
+            "rewrites": [
+                {
+                    "source": "**",
+                    "destination": "/index.html"
+                }
+            ]
         }
     ]
 }
