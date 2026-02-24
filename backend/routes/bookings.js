@@ -114,9 +114,19 @@ router.get('/all', protect, authorize('admin'), async (req, res, next) => {
             query.scheduledDate = { $gte: start, $lte: end };
         }
         if (search) {
+            // Find users matching search for name/phone
+            const users = await User.find({
+                $or: [
+                    { name: { $regex: search, $options: 'i' } },
+                    { phone: { $regex: search, $options: 'i' } }
+                ]
+            }).select('_id');
+            const userIds = users.map(u => u._id);
+
             query.$or = [
                 { bookingId: { $regex: search, $options: 'i' } },
-                { 'address.fullAddress': { $regex: search, $options: 'i' } }
+                { 'address.fullAddress': { $regex: search, $options: 'i' } },
+                { user: { $in: userIds } }
             ];
         }
 
