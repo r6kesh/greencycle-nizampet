@@ -5,7 +5,7 @@ import {
     Bell, LogOut, Settings, Search, ChevronDown, Menu, X,
     TrendingUp, DollarSign, Clock, CheckCircle, AlertCircle,
     Plus, Edit, Trash2, Eye, Download, Send, RefreshCw,
-    Phone, MapPin, Star, Filter, MoreVertical, FileText
+    Phone, MapPin, Star, Filter, MoreVertical, FileText, Megaphone
 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import api from './api';
@@ -15,29 +15,36 @@ import api from './api';
 // ═══════════════════════════════════════════════
 const useAuth = () => {
     const [user, setUser] = useState(() => {
-        const saved = localStorage.getItem('gc_admin_user');
+        const saved = sessionStorage.getItem('gc_admin_user');
         return saved ? JSON.parse(saved) : null;
     });
-    const [token, setToken] = useState(() => localStorage.getItem('gc_admin_token'));
+    const [token, setToken] = useState(() => sessionStorage.getItem('gc_admin_token'));
 
     const login = useCallback(async (phone, password) => {
         const res = await api.login(phone, password);
-        localStorage.setItem('gc_admin_token', res.data.token);
-        localStorage.setItem('gc_admin_user', JSON.stringify(res.data.user));
+        sessionStorage.setItem('gc_admin_token', res.data.token);
+        sessionStorage.setItem('gc_admin_user', JSON.stringify(res.data.user));
         setToken(res.data.token);
         setUser(res.data.user);
         return res;
     }, []);
 
     const logout = useCallback(() => {
-        localStorage.removeItem('gc_admin_token');
-        localStorage.removeItem('gc_admin_user');
+        sessionStorage.removeItem('gc_admin_token');
+        sessionStorage.removeItem('gc_admin_user');
         setToken(null);
         setUser(null);
     }, []);
 
-    // Session verification on mount
+    // Session verification & Strict Refresh Policy
     useEffect(() => {
+        // Enforce re-auth on refresh as requested
+        const navEntries = performance.getEntriesByType('navigation');
+        if (navEntries.length > 0 && navEntries[0].type === 'reload') {
+            logout();
+            return;
+        }
+
         if (token) {
             api.getProfile()
                 .then(res => setUser(res.data))
@@ -167,35 +174,60 @@ const DashboardPage = () => {
             </div>
 
             <div className="grid-2" style={{ marginBottom: 24 }}>
-                <div className="chart-container">
-                    <h3 className="card-title" style={{ marginBottom: 16 }}>📈 Weekly Trend</h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={data.weeklyTrend || []}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1e3a2f" />
-                            <XAxis dataKey="_id" stroke="#64748b" fontSize={11} />
-                            <YAxis stroke="#64748b" fontSize={11} />
-                            <Tooltip contentStyle={{ background: '#151d19', border: '1px solid #1e3a2f', borderRadius: 8 }} />
-                            <Bar dataKey="bookings" fill="#10b981" radius={[4, 4, 0, 0]} />
-                        </BarChart>
+                <div className="chart-container premium-chart">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                        <h3 className="card-title">📈 Growth Analytics</h3>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Last 7 Days</div>
+                    </div>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={data.weeklyTrend || []}>
+                            <defs>
+                                <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                            <XAxis dataKey="_id" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+                            <Tooltip
+                                contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)' }}
+                                itemStyle={{ color: '#10b981' }}
+                            />
+                            <Line type="monotone" dataKey="bookings" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#0f172a' }} activeDot={{ r: 6 }} />
+                        </LineChart>
                     </ResponsiveContainer>
                 </div>
 
-                <div className="chart-container">
-                    <h3 className="card-title" style={{ marginBottom: 16 }}>📊 Booking Status</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                <div className="chart-container premium-chart">
+                    <h3 className="card-title" style={{ marginBottom: 20 }}>📊 Operations Split</h3>
+                    <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
-                            <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={40}>
+                            <Pie
+                                data={pieData}
+                                dataKey="value"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={100}
+                                innerRadius={60}
+                                paddingAngle={5}
+                                stroke="none"
+                            >
                                 {pieData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                             </Pie>
-                            <Tooltip contentStyle={{ background: '#151d19', border: '1px solid #1e3a2f', borderRadius: 8 }} />
+                            <Tooltip
+                                contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12 }}
+                            />
                         </PieChart>
                     </ResponsiveContainer>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 8 }}>
+                    <div className="pie-legend">
                         {pieData.map((s, i) => (
-                            <span key={i} style={{ fontSize: 11, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.fill, display: 'inline-block' }} />
-                                {s.name}: {s.value}
-                            </span>
+                            <div key={i} className="legend-item">
+                                <span className="legend-dot" style={{ background: s.fill }} />
+                                <span className="legend-label">{s.name}</span>
+                                <span className="legend-value">{s.value}</span>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -268,7 +300,7 @@ const BookingsPage = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [search, setSearch] = useState('');
     const [toast, setToast] = useState({ message: '', type: '' });
-    const [selectedBooking, setSelectedBooking] = useState(null);
+    const [viewDeal, setViewDeal] = useState(null);
     const [agents, setAgents] = useState([]);
 
     useEffect(() => {
@@ -399,6 +431,11 @@ const BookingsPage = () => {
                                         {b.status === 'assigned' && (
                                             <button className="btn btn-sm btn-primary" onClick={() => updateStatus(b._id, 'out_for_pickup')}>🚛 Start</button>
                                         )}
+                                        {b.status === 'completed' && (
+                                            <button className="btn btn-sm btn-secondary" onClick={() => setViewDeal(b)}>
+                                                <Eye size={12} /> Deal
+                                            </button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -406,6 +443,78 @@ const BookingsPage = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Deal Detail Modal */}
+            {viewDeal && (
+                <div className="modal-overlay" onClick={() => setViewDeal(null)}>
+                    <div className="modal deal-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div>
+                                <h3 style={{ fontSize: 18 }}>🤝 Transaction Breakdown</h3>
+                                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Booking: {viewDeal.bookingId}</p>
+                            </div>
+                            <button className="btn-icon" onClick={() => setViewDeal(null)}><X size={16} /></button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="deal-summary-cards">
+                                <div className="deal-card estimate">
+                                    <label>Initial Estimate</label>
+                                    <div className="value">₹{viewDeal.estimatedAmount}</div>
+                                </div>
+                                <div className="deal-card actual">
+                                    <label>Final Payout</label>
+                                    <div className="value">₹{viewDeal.finalAmount}</div>
+                                </div>
+                                <div className={`deal-card variance ${viewDeal.finalAmount >= viewDeal.estimatedAmount ? 'up' : 'down'}`}>
+                                    <label>Variance</label>
+                                    <div className="value">
+                                        {viewDeal.finalAmount >= viewDeal.estimatedAmount ? '+' : ''}
+                                        {(viewDeal.finalAmount - viewDeal.estimatedAmount).toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="deal-table">
+                                <h4 style={{ marginBottom: 12, fontSize: 14 }}>Itemized Details</h4>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Est. Weight</th>
+                                            <th>Actual Weight</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {viewDeal.items?.map(item => (
+                                            <tr key={item._id}>
+                                                <td>{item.categoryName}</td>
+                                                <td>{item.estimatedWeight}kg</td>
+                                                <td style={{ color: 'var(--emerald-400)', fontWeight: 600 }}>{item.actualWeight || 0}kg</td>
+                                                <td>₹{item.pricePerKg}</td>
+                                                <td style={{ fontWeight: 600 }}>₹{item.amount || 0}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {viewDeal.agent && (
+                                <div style={{ marginTop: 20, padding: 12, background: 'rgba(255,255,255,0.03)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--gold)', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                                        {viewDeal.agent?.name?.[0] || 'A'}
+                                    </div>
+                                    <div>
+                                        <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Collected By</p>
+                                        <p style={{ fontSize: 14, fontWeight: 600 }}>{viewDeal.agent?.name}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Assign Agent Modal */}
             {selectedBooking && (
@@ -682,6 +791,7 @@ const AgentsPage = () => {
     };
 
     const createAgent = async () => {
+        if (form.password.length < 6) return setToast({ message: 'Password must be at least 6 characters', type: 'error' });
         try {
             await api.createAgent(form);
             setToast({ message: 'Agent created!', type: 'success' });
@@ -778,16 +888,16 @@ const RevenuePage = () => {
     const [period, setPeriod] = useState('monthly');
     const [loading, setLoading] = useState(true);
 
-    const loadData = async (p) => {
+    const loadData = useCallback(async (p) => {
         setLoading(true);
         try {
             const res = await api.getRevenue(p || period);
             setData(res.data);
         } catch (err) { console.error(err); }
         setLoading(false);
-    };
+    }, [period]);
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [loadData]);
 
     const exportData = async () => {
         try {
@@ -861,6 +971,136 @@ const RevenuePage = () => {
 };
 
 // ═══════════════════════════════════════════════
+// Announcements Page
+// ═══════════════════════════════════════════════
+const AnnouncementsPage = () => {
+    const [announcements, setAnnouncements] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [form, setForm] = useState({ title: '', content: '', target: 'all', priority: 'medium' });
+    const [toast, setToast] = useState({ message: '', type: '' });
+
+    const loadAnnouncements = useCallback(async () => {
+        try {
+            const res = await api.getAnnouncements();
+            setAnnouncements(res.data || []);
+        } catch (err) { console.error(err); }
+        setLoading(false);
+    }, []);
+
+    useEffect(() => { loadAnnouncements(); }, [loadAnnouncements]);
+
+    const handleCreate = async () => {
+        try {
+            await api.createAnnouncement(form);
+            setToast({ message: 'Announcement broadcasted!', type: 'success' });
+            setShowModal(false);
+            setForm({ title: '', content: '', target: 'all', priority: 'medium' });
+            loadAnnouncements();
+        } catch (err) { setToast({ message: err.message, type: 'error' }); }
+    };
+
+    const handleDelete = async (id) => {
+        if (!confirm('Stop this announcement?')) return;
+        try {
+            await api.deleteAnnouncement(id);
+            setToast({ message: 'Announcement stopped', type: 'success' });
+            loadAnnouncements();
+        } catch (err) { setToast({ message: err.message, type: 'error' }); }
+    };
+
+    return (
+        <div className="animate-in">
+            <Toast {...toast} onClose={() => setToast({ message: '', type: '' })} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <div>
+                    <h3 style={{ fontSize: 18, fontWeight: 600 }}>📢 System Announcements</h3>
+                    <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Broadcast messages to Users or Agents</p>
+                </div>
+                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                    <Plus size={16} /> New Broadcast
+                </button>
+            </div>
+
+            {loading ? <LoadingState /> : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 16 }}>
+                    {announcements.map(a => (
+                        <div key={a._id} className="announcement-item" style={{ borderLeft: `4px solid var(--${a.priority === 'high' || a.priority === 'critical' ? 'danger' : 'emerald-500'})` }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <span className={`badge priority-${a.priority}`}>{a.priority.toUpperCase()}</span>
+                                <span className={`badge target-${a.target}`}>{a.target.toUpperCase()}</span>
+                            </div>
+                            <h4 style={{ marginBottom: 4 }}>{a.title}</h4>
+                            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>{a.content}</p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-muted)' }}>
+                                <span>Published: {new Date(a.createdAt).toLocaleDateString()}</span>
+                                <button className="btn-icon" onClick={() => handleDelete(a._id)} style={{ color: 'var(--danger)' }}><Trash2 size={14} /></button>
+                            </div>
+                        </div>
+                    ))}
+                    {announcements.length === 0 && (
+                        <div style={{ gridColumn: '1/-1' }}>
+                            <EmptyState icon="📢" title="No active announcements" />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {showModal && (
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>Create Broadcast</h3>
+                            <button className="btn-icon" onClick={() => setShowModal(false)}><X size={16} /></button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="form-group">
+                                <label className="form-label">Broadcast Title</label>
+                                <input className="form-input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Holiday Notice" />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Target Audience</label>
+                                <select className="form-input" value={form.target} onChange={e => setForm({ ...form, target: e.target.value })}>
+                                    <option value="all">Everyone</option>
+                                    <option value="users">Customers Only</option>
+                                    <option value="agents">Agents Only</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Content</label>
+                                <textarea className="form-textarea" value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} placeholder="Write your message here..." style={{ height: 100 }} />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Priority</label>
+                                <div style={{ display: 'flex', gap: 10 }}>
+                                    {['low', 'medium', 'high'].map(p => (
+                                        <button
+                                            key={p}
+                                            className={`btn ${form.priority === p ? 'btn-primary' : 'btn-secondary'}`}
+                                            style={{ flex: 1, textTransform: 'capitalize' }}
+                                            onClick={() => setForm({ ...form, priority: p })}
+                                        >
+                                            {p}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                            <button className="btn btn-primary" onClick={handleCreate} disabled={!form.title || !form.content}>
+                                <Send size={14} /> Send Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ═══════════════════════════════════════════════
 // Notifications Page
 // ═══════════════════════════════════════════════
 const NotificationsPage = () => {
@@ -928,6 +1168,7 @@ const Sidebar = ({ onLogout }) => {
         { to: '/agents', icon: <Truck size={18} />, label: 'Agents' },
         { to: '/revenue', icon: <BarChart3 size={18} />, label: 'Revenue' },
         { to: '/notifications', icon: <Bell size={18} />, label: 'Notifications' },
+        { to: '/announcements', icon: <Megaphone size={18} />, label: 'Announcements' },
     ];
 
     return (
@@ -1002,6 +1243,7 @@ const App = () => {
         '/agents': { title: 'Agents', subtitle: 'Manage your pickup agent team.' },
         '/revenue': { title: 'Revenue', subtitle: 'Track earnings and export reports.' },
         '/notifications': { title: 'Notifications', subtitle: 'Send promotional messages to users.' },
+        '/announcements': { title: 'Announcements', subtitle: 'Broadcast system-wide alerts.' },
     };
 
     return (
@@ -1017,6 +1259,7 @@ const App = () => {
                         <Route path="/agents" element={<><Header {...pageTitles['/agents']} user={user} /><div className="page-container"><AgentsPage /></div></>} />
                         <Route path="/revenue" element={<><Header {...pageTitles['/revenue']} user={user} /><div className="page-container"><RevenuePage /></div></>} />
                         <Route path="/notifications" element={<><Header {...pageTitles['/notifications']} user={user} /><div className="page-container"><NotificationsPage /></div></>} />
+                        <Route path="/announcements" element={<><Header {...pageTitles['/announcements']} user={user} /><div className="page-container"><AnnouncementsPage /></div></>} />
                         <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                 </main>

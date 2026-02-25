@@ -23,8 +23,9 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 
 // Security & parsing middleware
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: '*', credentials: true }));
+// Security & parsing middleware (Helmet disabled for tunnel)
+// app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -42,6 +43,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/announcements', require('./routes/announcements'));
+app.use('/api/support', require('./routes/support'));
 
 // Root route
 app.get('/', (req, res) => {

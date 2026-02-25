@@ -1,10 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = 'https://territory-element-cases-bibliographic.trycloudflare.com/api';
 
 const getHeaders = () => {
     const token = localStorage.getItem('gc_token');
     return {
         'Content-Type': 'application/json',
-        'bypass-tunnel-reminder': 'true',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 };
@@ -33,6 +32,14 @@ export const api = {
         fetch(`${API_BASE}/bookings/my`, { headers: getHeaders() }).then(handleRes),
     getBooking: (id) =>
         fetch(`${API_BASE}/bookings/${id}`, { headers: getHeaders() }).then(handleRes),
+
+    // Announcements
+    getAnnouncements: () =>
+        fetch(`${API_BASE}/announcements?role=customer`, { headers: getHeaders() }).then(handleRes),
+
+    // Support
+    chatWithAI: (message) =>
+        fetch(`${API_BASE}/support/chat`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ message }) }).then(handleRes),
 };
 
 export default api;

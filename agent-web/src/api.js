@@ -1,10 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = 'https://territory-element-cases-bibliographic.trycloudflare.com/api';
 
 const getHeaders = () => {
     const token = localStorage.getItem('gc_agent_token');
     return {
         'Content-Type': 'application/json',
-        'bypass-tunnel-reminder': 'true',
         ...(token && { Authorization: `Bearer ${token}` })
     };
 };
@@ -40,11 +39,11 @@ const api = {
         }).then(handleResponse);
     },
 
-    completeTask: (id, finalAmount) =>
+    completeTask: (id, finalAmount, items) =>
         fetch(`${API_BASE}/agents/pickups/${id}/complete`, {
             method: 'PUT',
             headers: getHeaders(),
-            body: JSON.stringify({ finalAmount })
+            body: JSON.stringify({ finalAmount, items })
         }).then(handleResponse)
 };
 

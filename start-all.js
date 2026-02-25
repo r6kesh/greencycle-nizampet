@@ -4,27 +4,48 @@
  */
 const { spawn } = require('child_process');
 const http = require('http');
+const fs = require('fs');
 
-console.log('🚀 Starting GreenCycle backend + tunnel...\n');
+console.log('🚀 Starting GreenCycle backend + Cloudflare Tunnel...\n');
 
-// 1. Start backend (must use backend/ as CWD so dotenv finds .env)
+// 1. Start backend
 const backend = spawn('node', ['server.js'], {
     cwd: require('path').join(__dirname, 'backend'),
     stdio: 'inherit',
     shell: true
 });
 
-// 2. Wait 3s then start localtunnel
+// 2. Start Cloudflare Tunnel
 setTimeout(() => {
     startTunnel();
 }, 3000);
 
 function startTunnel() {
-    console.log('🌐 Starting localtunnel...');
-    const tunnel = spawn('lt', ['--port', '5000', '--subdomain', 'greencycle-api'], {
+    console.log('🌐 Starting Cloudflare Tunnel...');
+    const tunnel = spawn('npx', ['--yes', 'cloudflared', 'tunnel', '--url', 'http://localhost:5000'], {
         cwd: __dirname,
-        stdio: 'inherit',
         shell: true
+    });
+
+    tunnel.stdout.on('data', (data) => {
+        const out = data.toString();
+        if (out.includes('trycloudflare.com')) {
+            const urlMatch = out.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+            if (urlMatch) {
+                console.log(`\n✅ LIVE API URL: ${urlMatch[0]}/api`);
+                console.log('⚠️  IMPORTANT: If you restart this, you must update the frontends with this new URL.');
+            }
+        }
+    });
+
+    tunnel.stderr.on('data', (data) => {
+        const out = data.toString();
+        if (out.includes('trycloudflare.com')) {
+            const urlMatch = out.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+            if (urlMatch) {
+                console.log(`\n🔗 Tunnel URL Found: ${urlMatch[0]}`);
+            }
+        }
     });
 
     tunnel.on('exit', (code) => {
@@ -33,11 +54,9 @@ function startTunnel() {
     });
 }
 
-// 3. Keep-alive ping every 4 minutes to prevent tunnel sleep
+// 3. Keep-alive ping
 setInterval(() => {
-    const req = http.request({ hostname: 'localhost', port: 5000, path: '/api/health', method: 'GET' }, (res) => {
-        console.log(`💓 Keep-alive ping: ${res.statusCode}`);
-    });
+    const req = http.request({ hostname: 'localhost', port: 5000, path: '/api/health', method: 'GET' }, (res) => { });
     req.on('error', () => { });
     req.end();
 }, 4 * 60 * 1000);
@@ -48,8 +67,8 @@ process.on('SIGINT', () => {
     process.exit();
 });
 
-console.log('\n✅ GreenCycle is running!');
+console.log('\n✅ GreenCycle is booting up!');
 console.log('📱 Customer: https://greencycle-nizampet.web.app');
 console.log('🔐 Admin:    https://greencycle-admin-panel.web.app');
-console.log('⚙️  API:      https://greencycle-api.loca.lt/api');
+console.log('⚙️  Agent:    https://greencycle-agent-panel.web.app');
 console.log('\nPress Ctrl+C to stop.\n');

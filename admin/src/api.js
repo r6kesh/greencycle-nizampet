@@ -1,10 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = 'https://territory-element-cases-bibliographic.trycloudflare.com/api';
 
 const getHeaders = () => {
-    const token = localStorage.getItem('gc_admin_token');
+    const token = sessionStorage.getItem('gc_admin_token');
     return {
         'Content-Type': 'application/json',
-        'bypass-tunnel-reminder': 'true',
         ...(token && { Authorization: `Bearer ${token}` })
     };
 };
@@ -110,6 +109,23 @@ const api = {
             method: 'POST',
             headers: getHeaders(),
             body: JSON.stringify(data)
+        }).then(handleResponse),
+
+    // Announcements
+    getAnnouncements: () =>
+        fetch(`${API_BASE}/announcements`, { headers: getHeaders() }).then(handleResponse),
+
+    createAnnouncement: (data) =>
+        fetch(`${API_BASE}/announcements`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        }).then(handleResponse),
+
+    deleteAnnouncement: (id) =>
+        fetch(`${API_BASE}/announcements/${id}`, {
+            method: 'DELETE',
+            headers: getHeaders()
         }).then(handleResponse)
 };
 

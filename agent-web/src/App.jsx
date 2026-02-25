@@ -11,23 +11,23 @@ import api from './api';
 // ═══════════════════════════════════════════════
 const useAuth = () => {
     const [user, setUser] = useState(() => {
-        const saved = localStorage.getItem('gc_agent_user');
+        const saved = sessionStorage.getItem('gc_agent_user');
         return saved ? JSON.parse(saved) : null;
     });
-    const [token, setToken] = useState(() => localStorage.getItem('gc_agent_token'));
+    const [token, setToken] = useState(() => sessionStorage.getItem('gc_agent_token'));
 
     const login = useCallback(async (phone, password) => {
         const res = await api.login(phone, password);
-        localStorage.setItem('gc_agent_token', res.data.token);
-        localStorage.setItem('gc_agent_user', JSON.stringify(res.data.user));
+        sessionStorage.setItem('gc_agent_token', res.data.token);
+        sessionStorage.setItem('gc_agent_user', JSON.stringify(res.data.user));
         setToken(res.data.token);
         setUser(res.data.user);
         return res;
     }, []);
 
     const logout = useCallback(() => {
-        localStorage.removeItem('gc_agent_token');
-        localStorage.removeItem('gc_agent_user');
+        sessionStorage.removeItem('gc_agent_token');
+        sessionStorage.removeItem('gc_agent_user');
         setToken(null);
         setUser(null);
     }, []);
@@ -93,9 +93,9 @@ const LoginPage = ({ onLogin }) => {
 // Task Dashboard
 // ═══════════════════════════════════════════════
 const TaskDashboard = ({ user, onLogout }) => {
-    const [tasks, setTasks] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
+    const [selectedTask, setSelectedTask] = useState(null);
+    const [showCompleteModal, setShowCompleteModal] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     const refreshTasks = async () => {
         setRefreshing(true);
@@ -118,13 +118,28 @@ const TaskDashboard = ({ user, onLogout }) => {
         } catch (err) { alert(err.message); }
     };
 
-    const completePickup = async (id) => {
-        const amount = prompt("Enter final payout amount (₹):");
-        if (!amount) return;
+    const handleComplete = (task) => {
+        setSelectedTask(JSON.parse(JSON.stringify(task))); // Deep copy
+        setShowCompleteModal(true);
+    };
+
+    const submitCompletion = async () => {
+        setSubmitting(true);
         try {
-            await api.completeTask(id, amount);
+            const finalAmount = selectedTask.items.reduce((sum, item) => sum + (item.actualWeight * (item.pricePerKg || 0)), 0);
+            await api.completeTask(selectedTask._id, finalAmount, selectedTask.items);
+            setShowCompleteModal(false);
             refreshTasks();
-        } catch (err) { alert(err.message); }
+        } catch (err) {
+            alert(err.message);
+        }
+        setSubmitting(false);
+    };
+
+    const updateWeight = (index, weight) => {
+        const newItems = [...selectedTask.items];
+        newItems[index].actualWeight = Number(weight);
+        setSelectedTask({ ...selectedTask, items: newItems });
     };
 
     return (
@@ -199,13 +214,61 @@ const TaskDashboard = ({ user, onLogout }) => {
                                 </button>
                             )}
                             {task.status === 'out_for_pickup' && (
-                                <button className="btn" style={{ background: 'var(--gold)', color: 'black' }} onClick={() => completePickup(task._id)}>
+                                <button className="btn" style={{ background: 'var(--gold)', color: 'black' }} onClick={() => handleComplete(task)}>
                                     <CheckCircle size={18} /> Mark Completed
                                 </button>
                             )}
                         </div>
                     </div>
                 ))}
+
+                {showCompleteModal && selectedTask && (
+                    <div className="modal-overlay">
+                        <div className="modal animate-in">
+                            <h3 style={{ marginBottom: '1rem' }}>Final Deal Reporting</h3>
+                            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                                Enter the weights collected for each category.
+                            </p>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 15, marginBottom: '2rem' }}>
+                                {selectedTask.items.map((item, idx) => (
+                                    <div key={item._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: 10, borderRadius: 8 }}>
+                                        <div>
+                                            <p style={{ fontWeight: 600 }}>{item.categoryName}</p>
+                                            <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Est: {item.estimatedWeight}kg | Rate: ₹{item.pricePerKg}/kg</p>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                            <input
+                                                type="number"
+                                                placeholder="Weight"
+                                                value={item.actualWeight || ''}
+                                                onChange={(e) => updateWeight(idx, e.target.value)}
+                                                style={{ width: 80, padding: 8, textAlign: 'center' }}
+                                            />
+                                            <span style={{ fontSize: 13 }}>kg</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: 8, marginBottom: '2rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                                    <span>Calculated Payout:</span>
+                                    <span style={{ color: 'var(--emerald-400)' }}>
+                                        ₹{selectedTask.items.reduce((sum, item) => sum + ((item.actualWeight || 0) * (item.pricePerKg || 0)), 0).toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                <button className="btn" style={{ flex: 1 }} onClick={() => setShowCompleteModal(false)} disabled={submitting}>Cancel</button>
+                                <button className="btn btn-primary" style={{ flex: 2 }} onClick={submitCompletion} disabled={submitting}>
+                                    {submitting ? 'Submitting...' : 'Confirm & Complete'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <style>{`
@@ -213,6 +276,25 @@ const TaskDashboard = ({ user, onLogout }) => {
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .badge-assigned { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }
                 .badge-out_for_pickup { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+                
+                .modal-overlay {
+                    position: fixed;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.85);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                    padding: 1rem;
+                }
+                .modal {
+                    background: #111827;
+                    padding: 1.5rem;
+                    border-radius: var(--radius);
+                    width: 100%;
+                    max-width: 400px;
+                    border: 1px solid var(--border);
+                }
             `}</style>
         </div>
     );

@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import BookPickup from './pages/BookPickup';
 import MyBookings from './pages/MyBookings';
+import AIChatWidget from './components/AIChatWidget';
 import './index.css';
 
 function Navbar({ user, onLogout }) {
@@ -134,6 +135,7 @@ function AppInner() {
                     } />
                 </Routes>
             </main>
+            <AIChatWidget />
             <Footer />
         </div>
     );
