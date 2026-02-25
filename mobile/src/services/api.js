@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Change this to your backend URL
-const API_BASE = 'http://15.20.81.26:5000/api'; // Official Local IP
+// const API_BASE = 'http://15.20.81.26:5000/api'; // Official Local IP
 // const API_BASE = 'http://10.0.2.2:5000/api'; // Android emulator
-// const API_BASE = 'https://your-production-url.com/api'; // Production
+const API_BASE = 'https://greencycle-api.onrender.com/api'; // Production
 
 const getToken = async () => {
     return await AsyncStorage.getItem('gc_token');

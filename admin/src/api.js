@@ -1,4 +1,4 @@
-const API_BASE = 'https://territory-element-cases-bibliographic.trycloudflare.com/api';
+const API_BASE = 'https://greencycle-api.onrender.com/api';
 
 const getHeaders = () => {
     const token = sessionStorage.getItem('gc_admin_token');
